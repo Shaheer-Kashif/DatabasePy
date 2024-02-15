@@ -52,7 +52,7 @@ def show():
     
     new_record = ""
     for record in records:
-        new_record += str(record) + "\n"
+        new_record += str(record[0]) +" "+ str(record[1]) + " Class: " +str(record[2]) + "\n"
         
     display_label = Label(root,text = new_record)
     display_label.grid(row=5,column=0,columnspan=2)
