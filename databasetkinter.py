@@ -34,7 +34,7 @@ def submit():
                    "class":grade.get(),
                    "phone_no":phone_no.get()}
         )
-        success_label= Label(root,text=str(firstname.get()) +" "+str(lastname.get())+"added!")
+        success_label= Label(root,text=str(firstname.get()) +" "+str(lastname.get())+" added!")
         success_label.grid(row=7,column=0,columnspan=2)
         firstname.delete(0,END)
         lastname.delete(0,END)
@@ -51,8 +51,9 @@ def submit():
         elif not((int(grade.get()) >= 1 and int(grade.get()) <= 10)):
             warning_label= Label(root,text="Invalid Class")
         warning_label.grid(row=7,column=0,columnspan=2)
-
+    
 def show():
+    global window
     data = sqlite3.connect('school.db')
     d = data.cursor()
     
@@ -74,7 +75,7 @@ def show():
     last_name.insert(0,"Last Name")
     last_name.grid(row=0,column = 2)
     
-    gradeshow = Entry(window,width=6,font= ("Helvetica",font_size,"bold"),justify="center")
+    gradeshow = Entry(window,width=8,font= ("Helvetica",font_size,"bold"),justify="center")
     gradeshow.insert(0,"Class")
     gradeshow.grid(row=0,column = 3)
     
@@ -84,32 +85,118 @@ def show():
     
     i = 1
     for record in records:
-        locals()['s_no'+str(i)] = Entry(window,width=5)
+        locals()['s_no'+str(i)] = Entry(window,width=6,justify="right")
         locals()['s_no'+str(i)].insert(0,record[4])
         locals()['s_no'+str(i)].grid(row=i,column = 0)
         
-        locals()['f_name'+str(i)] = Entry(window,width=12)
+        locals()['f_name'+str(i)] = Entry(window,width=14,justify="center")
         locals()['f_name'+str(i)].insert(0,record[0])
         locals()['f_name'+str(i)].grid(row=i,column = 1)
         
-        locals()['l_name'+str(i)] = Entry(window,width=12)
+        locals()['l_name'+str(i)] = Entry(window,width=14,justify="center")
         locals()['l_name'+str(i)].insert(0,record[1])
         locals()['l_name'+str(i)].grid(row=i,column = 2)
         
-        locals()['grade'+str(i)] = Entry(window,width=6)
+        locals()['grade'+str(i)] = Entry(window,width=9,justify="center")
         locals()['grade'+str(i)].insert(0,record[2])
         locals()['grade'+str(i)].grid(row=i,column = 3)
         
-        locals()['phoneno'+str(i)] = Entry(window,width=12)
+        locals()['phoneno'+str(i)] = Entry(window,width=14,justify="center")
         locals()['phoneno'+str(i)].insert(0,"0"+str(record[3]))
         locals()['phoneno'+str(i)].grid(row=i,column = 4)
-        
-        
+
         i += 1
         
+    update_btn = Button(window,text = "Update Record",command = update)
+    update_btn.grid(row = i,column=2,pady= (10,5))
+        
+    data.commit()
+    data.close()
+    
+def save():
+    global firstname_editor, lastname_editor, grade_editor, phone_no_editor,val,editor
+    data = sqlite3.connect('school.db')
+    
+    d = data.cursor()
+    d.execute("""UPDATE students SET firstname = :first ,
+                 lastname = :last,
+                 class = :grade,
+                 phone_no = :phone
+                 WHERE oid = :oid""",
+             {"first" : firstname_editor.get(),
+              "last" : lastname_editor.get(),
+              "grade" : grade_editor.get(),
+              "phone" : phone_no_editor.get(),
+              "oid" : val}
+              )
+                 
+        
+    data.commit()
+    data.close()
+    window.destroy()
+    editor.destroy()
+    show()
+    
+def edit():
+    global id_input,input_window, firstname_editor, lastname_editor, grade_editor, phone_no_editor,val,editor
+    val = id_input.get()
+    input_window.destroy()
+    data = sqlite3.connect('school.db')
+    
+    d = data.cursor()
+    d.execute("SELECT * FROM students WHERE oid = " + val)
+    records = d.fetchall()
+    
+    editor = Toplevel()
+    
+    firstname_editor = Entry(editor,width=20)
+    firstname_editor.grid(row=0, column=1)
+
+    lastname_editor = Entry(editor,width=20)
+    lastname_editor.grid(row=1, column=1)
+
+    grade_editor = Entry(editor,width=20)
+    grade_editor.grid(row=2, column=1)
+
+    phone_no_editor = Entry(editor,width=20)
+    phone_no_editor.grid(row=3, column=1)
+    
+    for record in records:
+        firstname_editor.insert(0,record[0])
+        lastname_editor.insert(0,record[1])
+        grade_editor.insert(0,record[2])
+        phone_no_editor.insert(0,record[3])
+
+    #Creating Label
+    firstname_label = Label(editor, text= "First Name" )
+    firstname_label.grid(row=0, column=0,sticky=E+W)
+
+    lastname_label = Label(editor, text= "Last Name")
+    lastname_label.grid(row=1, column=0)
+
+    grade_label = Label(editor, text= "Class")
+    grade_label.grid(row=2, column=0)
+
+    phone_no_label = Label(editor, text= "Phone Number")
+    phone_no_label.grid(row=3, column=0)
+    
+    save_btn = Button(editor,text = "Save Edit",command = save)
+    save_btn.grid(row=4, column=0,columnspan=2,pady = 10)
+
     
     data.commit()
     data.close()
+    
+def update():
+    global id_input,input_window
+    input_window = Toplevel()
+    prompt = Label(input_window, text = "Enter ID which you want to edit")
+    prompt.pack()
+    id_input = Entry(input_window,width = 15,font = ("Helvetica",18,"bold"))
+    id_input.pack()
+    enter = Button(input_window,text = "Edit",font = ("Helvetica",12),width=10,command = edit)
+    enter.pack(pady= 10)
+                   
     
 #Creating Entry
 firstname = Entry(root,width=20)
