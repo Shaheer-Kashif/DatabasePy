@@ -15,6 +15,7 @@ def validate_input(new_text):
         return False
     
 validation = root.register(validate_input)
+root.configure(bg = "#313131")
 
 '''
 d.execute(""" CREATE TABLE students (
@@ -78,7 +79,6 @@ def submit():
             warning_label= Label(root,text="Invalid Class", width=30, anchor="center")
         warning_label.grid(row=7,column=0,columnspan=2)
    
-    
 def show():
     global window
     data = sqlite3.connect('school.db')
@@ -88,25 +88,25 @@ def show():
     records = d.fetchall()
     
     window = Toplevel()
-    
+     
     font_size = 10
-    s_no = Entry(window,width=5,font= ("Helvetica",font_size,"bold"),justify="center")
+    s_no = Entry(window,width=5,font= ("Helvetica",font_size,"bold"),justify="center",state="readonly")
     s_no.insert(0,"S.No")
     s_no.grid(row=0,column = 0)
     
-    first_name = Entry(window,width=12,font= ("Helvetica",font_size,"bold"),justify="center")
+    first_name = Entry(window,width=12,font= ("Helvetica",font_size,"bold"),justify="center",state="readonly")
     first_name.insert(0,"First Name")
     first_name.grid(row=0,column = 1)
     
-    last_name = Entry(window,width=12,font= ("Helvetica",font_size,"bold"),justify="center")
+    last_name = Entry(window,width=12,font= ("Helvetica",font_size,"bold"),justify="center",state="readonly")
     last_name.insert(0,"Last Name")
     last_name.grid(row=0,column = 2)
     
-    gradeshow = Entry(window,width=8,font= ("Helvetica",font_size,"bold"),justify="center")
+    gradeshow = Entry(window,width=8,font= ("Helvetica",font_size,"bold"),justify="center",state="readonly")
     gradeshow.insert(0,"Class")
     gradeshow.grid(row=0,column = 3)
     
-    phoneno = Entry(window,width=12,font= ("Helvetica",font_size,"bold"),justify="center")
+    phoneno = Entry(window,width=12,font= ("Helvetica",font_size,"bold"),justify="center",state="readonly")
     phoneno.insert(0,"Phone No")
     phoneno.grid(row=0,column = 4)
     
@@ -115,22 +115,27 @@ def show():
         locals()['s_no'+str(i)] = Entry(window,width=6,justify="right")
         locals()['s_no'+str(i)].insert(0,record[4])
         locals()['s_no'+str(i)].grid(row=i,column = 0)
+        locals()['s_no'+str(i)].configure(state="readonly")
         
         locals()['f_name'+str(i)] = Entry(window,width=14,justify="center")
         locals()['f_name'+str(i)].insert(0,record[0])
         locals()['f_name'+str(i)].grid(row=i,column = 1)
+        locals()['f_name'+str(i)].configure(state="readonly")
         
         locals()['l_name'+str(i)] = Entry(window,width=14,justify="center")
         locals()['l_name'+str(i)].insert(0,record[1])
         locals()['l_name'+str(i)].grid(row=i,column = 2)
+        locals()['l_name'+str(i)].configure(state="readonly")
         
         locals()['grade'+str(i)] = Entry(window,width=9,justify="center")
         locals()['grade'+str(i)].insert(0,record[2])
         locals()['grade'+str(i)].grid(row=i,column = 3)
+        locals()['grade'+str(i)].configure(state="readonly")
         
         locals()['phoneno'+str(i)] = Entry(window,width=14,justify="center")
         locals()['phoneno'+str(i)].insert(0,"0"+str(record[3]))
         locals()['phoneno'+str(i)].grid(row=i,column = 4)
+        locals()['phoneno'+str(i)].configure(state="readonly")
 
         i += 1
         
@@ -227,7 +232,7 @@ def update():
     
 #Creating Entry
 firstname = Entry(root,width=20)
-firstname.grid(row=0, column=1)
+firstname.grid(row=0, column=1,pady=(5,0))
 
 lastname = Entry(root,width=20)
 lastname.grid(row=1, column=1)
@@ -242,26 +247,26 @@ delete_ent = Entry(root,width=20,validate="key", validatecommand=(validation, '%
 delete_ent.grid(row=5, column=1)
 
 #Creating Label
-firstname_label = Label(root, text= "First Name" )
-firstname_label.grid(row=0, column=0,sticky=E+W)
+firstname_label = Label(root, text= "First Name" ,bg = "#313131",fg="white")
+firstname_label.grid(row=0, column=0,pady=(5,0))
 
-lastname_label = Label(root, text= "Last Name")
+lastname_label = Label(root, text= "Last Name",bg = "#313131",fg="white")
 lastname_label.grid(row=1, column=0)
 
-grade_label = Label(root, text= "Class")
+grade_label = Label(root, text= "Class",bg = "#313131",fg="white")
 grade_label.grid(row=2, column=0)
 
-phone_no_label = Label(root, text= "Phone Number")
+phone_no_label = Label(root, text= "Phone Number",bg = "#313131",fg="white")
 phone_no_label.grid(row=3, column=0)
 
-delete_label = Label(root, text= "Delete ID")
+delete_label = Label(root, text= "Delete ID",bg = "#313131",fg="white")
 delete_label.grid(row=5, column=0)
 
-submit_btn = Button(root, text = "Submit",command=submit,padx=20,width=10)
+submit_btn = Button(root, text = "Submit",command=submit,padx=20,width=10,bg="#1A7C28",fg="white",borderwidth=1,font = ("montserrat"))
 submit_btn.grid(row=4,column=0,pady=15)
-show_btn = Button(root, text = "Show Records",command=show,padx=20)
+show_btn = Button(root, text = "Show Records",command=show,padx=20,bg="#1A7C28",fg="white",borderwidth=1,font = ("montserrat"))
 show_btn.grid(row=4,column=1,pady=5)
-delete_btn = Button(root, text = "Delete",command=delete,padx=20,width=28)
+delete_btn = Button(root, text = "Delete",command=delete,padx=20,width=28,bg="#8B1A1A",fg="white",borderwidth=1,font = ("montserrat"))
 delete_btn.grid(row=6, column=0,columnspan=2,padx = 5,pady=5)
 
 
