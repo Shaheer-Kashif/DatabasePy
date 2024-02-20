@@ -1,10 +1,11 @@
 from tkinter import *
 import sqlite3
-import time
 from tkinter import messagebox
+import os
 
 root = Tk()
-root.title("Database App")
+root.title("School Database App")
+root.iconbitmap("databasetkinter.ico")
 show_pass = True
 update_pass = True
 
@@ -20,67 +21,74 @@ def validate_input(new_text):
 validation = root.register(validate_input)
 root.configure(bg = "#313131")
 
-'''
-d.execute(""" CREATE TABLE students (
+if os.path.exists("school.db"):
+    pass
+else:
+    data = sqlite3.connect('school.db')
+    d = data.cursor()
+    d.execute(""" CREATE TABLE students (
               firstname text,
 			  lastname text,
               class text,
               phone_no integer
               )
           """)
-'''
-    
+    data.commit()
+    data.close()
+        
 def delete():
     data = sqlite3.connect('school.db')
     d = data.cursor()
     d.execute(f"SELECT oid FROM students")
     oids = d.fetchall()
     oid_integers = [int(oid[0]) for oid in oids]
-    if (int(delete_ent.get()) >= oid_integers[0]) and (int(delete_ent.get()) <= oid_integers[len(oid_integers)-1]):
-        d.execute("DELETE from students WHERE oid = " + delete_ent.get())
-        delete_ent.delete(0,END)
+    if delete_ent.get() == "":
+        messagebox.showwarning("Warning","Enter an ID to Delete.")
     else:
-        warning_label= Label(root,text="Invalid ID", width=30, anchor="center")
-        warning_label.grid(row=7,column=0,columnspan=2)
+        if (int(delete_ent.get()) >= oid_integers[0]) and (int(delete_ent.get()) <= oid_integers[len(oid_integers)-1]):
+            d.execute("DELETE from students WHERE oid = " + delete_ent.get())
+            delete_ent.delete(0,END)
+        else:
+            messagebox.showerror("Error","This ID Doesn't Exist.")
     data.commit()
     data.close()
     
 
 def submit():
     global window
-    if (int(grade.get()) >= 1 and int(grade.get()) <= 10) and (len(phone_no.get()) == 11):
-        data = sqlite3.connect('school.db')
-        d = data.cursor()
-        
-        d.execute("INSERT INTO students VALUES (:firstname , :lastname , :class , :phone_no)",
-                  {"firstname":firstname.get(),
-                   "lastname":lastname.get(),
-                   "class":grade.get(),
-                   "phone_no":phone_no.get()}
-        )
-        success_label= Label(root,text=str(firstname.get()) +" "+str(lastname.get())+" added!", width=30, anchor="center",bg = "#313131",fg="white")
-        success_label.grid(row=7,column=0,columnspan=2)
-        firstname.delete(0,END)
-        lastname.delete(0,END)
-        grade.delete(0,END)
-        phone_no.delete(0,END)
-        data.commit()
-        data.close()
-        
-        try:
-            window.destroy()
-        except NameError:
-            pass
-        finally:
-            show()
+    if firstname.get() == "" or lastname.get() == "" or grade.get() == "" or phone_no.get() == "":
+        messagebox.showerror("Warning","Data Fields Can't be Empty.")
     else:
-        if not((int(grade.get()) >= 1 and int(grade.get()) <= 10)) and not(len(phone_no.get()) == 11):
-            warning_label= Label(root,text="Invalid Class and Phone Number", width=30, anchor="center")
-        elif not(len(phone_no.get()) == 11):
-            warning_label= Label(root,text="Invalid Phone Number", width=30, anchor="center")
-        elif not((int(grade.get()) >= 1 and int(grade.get()) <= 10)):
-            warning_label= Label(root,text="Invalid Class", width=30, anchor="center")
-        warning_label.grid(row=7,column=0,columnspan=2)
+        if (int(grade.get()) >= 1 and int(grade.get()) <= 10) and (len(phone_no.get()) == 11):
+            data = sqlite3.connect('school.db')
+            d = data.cursor()
+            
+            d.execute("INSERT INTO students VALUES (:firstname , :lastname , :class , :phone_no)",
+                    {"firstname":firstname.get(),
+                    "lastname":lastname.get(),
+                    "class":grade.get(),
+                    "phone_no":phone_no.get()}
+            )
+            messagebox.showinfo("Success!",str(firstname.get()) +" "+str(lastname.get())+" added!")
+            firstname.delete(0,END)
+            lastname.delete(0,END)
+            grade.delete(0,END)
+            phone_no.delete(0,END)
+            data.commit()
+            data.close()
+            try:
+                window.destroy()
+            except NameError:
+                pass
+            finally:
+                show()
+        else:
+            if not((int(grade.get()) >= 1 and int(grade.get()) <= 10)) and not(len(phone_no.get()) == 11):
+                messagebox.showwarning("Error","Invalid Class and Phone Number")
+            elif not(len(phone_no.get()) == 11):
+                messagebox.showwarning("Error","Invalid Phone Number")
+            elif not((int(grade.get()) >= 1 and int(grade.get()) <= 10)):
+                messagebox.showwarning("Error","Invalid Class")
    
 def show():
     global window,show_pass,update_btn
@@ -149,7 +157,10 @@ def show():
             locals()['grade'+str(i)].configure(state="readonly")
             
             locals()['phoneno'+str(i)] = Entry(window,width=14,justify="center")
-            locals()['phoneno'+str(i)].insert(0,"0"+str(record[3]))
+            if len(str(record[3])) < 11:
+                locals()['phoneno'+str(i)].insert(0,"0"+str(record[3]))
+            else:
+                locals()['phoneno'+str(i)].insert(0,str(record[3]))
             locals()['phoneno'+str(i)].grid(row=i,column = 4)
             locals()['phoneno'+str(i)].configure(state="readonly")
 
@@ -163,27 +174,37 @@ def show():
     
 def save():
     global firstname_editor, lastname_editor, grade_editor, phone_no_editor,val,editor
-    data = sqlite3.connect('school.db')
-    
-    d = data.cursor()
-    d.execute("""UPDATE students SET firstname = :first ,
-                 lastname = :last,
-                 class = :grade,
-                 phone_no = :phone
-                 WHERE oid = :oid""",
-             {"first" : firstname_editor.get(),
-              "last" : lastname_editor.get(),
-              "grade" : grade_editor.get(),
-              "phone" : phone_no_editor.get(),
-              "oid" : val}
-              )
-                 
+    if firstname_editor.get() == "" or lastname_editor.get() == "" or grade_editor.get() == "" or phone_no_editor.get() == "":
+        messagebox.showerror("Warning","Data Fields Can't be Empty.")
+    else:
+        if (int(grade_editor.get()) >= 1 and int(grade_editor.get()) <= 10) and (len(phone_no_editor.get()) == 11):
+            data = sqlite3.connect('school.db')
+            d = data.cursor()
         
-    data.commit()
-    data.close()
-    window.destroy()
-    editor.destroy()
-    show()
+            d.execute("""UPDATE students SET firstname = :first ,
+                        lastname = :last,
+                        class = :grade,
+                        phone_no = :phone
+                        WHERE oid = :oid""",
+                    {"first" : firstname_editor.get(),
+                    "last" : lastname_editor.get(),
+                    "grade" : grade_editor.get(),
+                    "phone" : phone_no_editor.get(),
+                    "oid" : val}
+                    )
+        else:
+            if not((int(grade_editor.get()) >= 1 and int(grade_editor.get()) <= 10)) and not(len(phone_no_editor.get()) == 11):
+                messagebox.showwarning("Error","Invalid Class and Phone Number")
+            elif not(len(phone_no_editor.get()) == 11):
+                messagebox.showwarning("Error","Invalid Phone Number")
+            elif not((int(grade_editor.get()) >= 1 and int(grade.get()) <= 10)):
+                messagebox.showwarning("Error","Invalid Class")
+            
+        data.commit()
+        data.close()
+        window.destroy()
+        editor.destroy()
+        show()
     
 def edit():
     global id_input,input_window, firstname_editor, lastname_editor, grade_editor, phone_no_editor,val,editor,update_btn
@@ -194,54 +215,62 @@ def edit():
     d.execute(f"SELECT oid FROM students")
     oids = d.fetchall()
     oid_integers = [int(oid[0]) for oid in oids]
-    if (int(val) >= oid_integers[0]) and (int(val) <= oid_integers[len(oid_integers)-1]):
-        input_window.destroy()
-        
-        d.execute("SELECT * FROM students WHERE oid = " + val)
-        records = d.fetchall()
-        
-        editor = Toplevel()
-        editor.configure(bg="#313131")
-        
-        firstname_editor = Entry(editor,width=20)
-        firstname_editor.grid(row=0, column=1,pady=(10,0),padx=5)
-
-        lastname_editor = Entry(editor,width=20)
-        lastname_editor.grid(row=1, column=1,padx=5)
-
-        grade_editor = Entry(editor,width=20,validate="key", validatecommand=(validation, '%P'))
-        grade_editor.grid(row=2, column=1,padx=5)
-
-        phone_no_editor = Entry(editor,width=20,validate="key", validatecommand=(validation, '%P'))
-        phone_no_editor.grid(row=3, column=1,padx=5)
-        
-        for record in records:
-            firstname_editor.insert(0,record[0])
-            lastname_editor.insert(0,record[1])
-            grade_editor.insert(0,record[2])
-            phone_no_editor.insert(0,"0"+str(record[3]))
-
-        #Creating Label
-        firstname_label = Label(editor, text= "First Name",bg = "#313131",fg="white",font=("arial",12)) 
-        firstname_label.grid(row=0, column=0,padx = 10,pady=(10,0))
-
-        lastname_label = Label(editor, text= "Last Name",bg = "#313131",fg="white",font=("arial",12))
-        lastname_label.grid(row=1, column=0,padx = 10)
-
-        grade_label = Label(editor, text= "Class",bg = "#313131",fg="white",font=("arial",12))
-        grade_label.grid(row=2, column=0,padx = 10)
-
-        phone_no_label = Label(editor, text= "Phone Number",bg = "#313131",fg="white",font=("arial",12))
-        phone_no_label.grid(row=3, column=0,padx = 10)
-        
-        save_btn = Button(editor,text = "Save Edit",command = save,bg="#1A7C28",fg="white",borderwidth=1,font = ("montserrat",12,"bold"),width = 10)
-        save_btn.grid(row=4, column=0,columnspan=2,pady = 10)
-        
+    if id_input.get() == "":
+        messagebox.showwarning("Warning","Enter an ID.")
     else:
-        messagebox.showerror("Error","This ID Doesn't Exist")
-        id_input.delete(0,END)
-    data.commit()
-    data.close()
+        if (int(val) >= oid_integers[0]) and (int(val) <= oid_integers[len(oid_integers)-1]):
+            input_window.destroy()
+            
+            d.execute("SELECT * FROM students WHERE oid = " + val)
+            records = d.fetchall()
+            
+            editor = Toplevel()
+            editor.configure(bg="#313131")
+            
+            firstname_editor = Entry(editor,width=20)
+            firstname_editor.grid(row=0, column=1,pady=(10,0),padx=5)
+
+            lastname_editor = Entry(editor,width=20)
+            lastname_editor.grid(row=1, column=1,padx=5)
+
+            grade_editor = Entry(editor,width=20,validate="key", validatecommand=(validation, '%P'))
+            grade_editor.grid(row=2, column=1,padx=5)
+
+            phone_no_editor = Entry(editor,width=20,validate="key", validatecommand=(validation, '%P'))
+            phone_no_editor.grid(row=3, column=1,padx=5)
+            
+            for record in records:
+                firstname_editor.insert(0,record[0])
+                lastname_editor.insert(0,record[1])
+                grade_editor.insert(0,record[2])
+                if len(str(record[3])) < 11:
+                    phone_no_editor.insert(0,"0"+str(record[3]))
+                else:
+                    phone_no_editor.insert(0,str(record[3]))
+                    
+
+            #Creating Label
+            firstname_label = Label(editor, text= "First Name",bg = "#313131",fg="white",font=("arial",12)) 
+            firstname_label.grid(row=0, column=0,padx = 10,pady=(10,0))
+
+            lastname_label = Label(editor, text= "Last Name",bg = "#313131",fg="white",font=("arial",12))
+            lastname_label.grid(row=1, column=0,padx = 10)
+
+            grade_label = Label(editor, text= "Class",bg = "#313131",fg="white",font=("arial",12))
+            grade_label.grid(row=2, column=0,padx = 10)
+
+            phone_no_label = Label(editor, text= "Phone Number",bg = "#313131",fg="white",font=("arial",12))
+            phone_no_label.grid(row=3, column=0,padx = 10)
+            
+            save_btn = Button(editor,text = "Save Edit",command = save,bg="#1A7C28",fg="white",borderwidth=1,font = ("montserrat",12,"bold"),width = 10)
+            save_btn.grid(row=4, column=0,columnspan=2,pady = 10)
+            data.commit()
+            data.close()
+            
+        else:
+            messagebox.showerror("Error","This ID Doesn't Exist")
+            id_input.delete(0,END)
+    
        
         
     
