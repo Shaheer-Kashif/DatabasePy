@@ -5,6 +5,7 @@ import os
 
 root = Tk()
 root.title("School Database App")
+root.resizable(False, False)
 root.iconbitmap("databasetkinter.ico")
 show_pass = True
 update_pass = True
@@ -102,6 +103,8 @@ def show():
         pass
     else:
         window = Toplevel()
+        window.title("Database")
+        window.resizable(False, False)
         data = sqlite3.connect('school.db')
         d = data.cursor()
     
@@ -225,6 +228,8 @@ def edit():
             records = d.fetchall()
             
             editor = Toplevel()
+            editor.resizable(False, False)
+            editor.title("Edit ID")
             editor.configure(bg="#313131")
             
             firstname_editor = Entry(editor,width=20)
@@ -285,6 +290,8 @@ def update():
         pass
     else:
         input_window = Toplevel()
+        input_window.title("Enter ID")
+        input_window.resizable(False, False)
         prompt = Label(input_window, text = "Enter ID which you want to edit")
         prompt.pack()
         id_input = Entry(input_window,width = 15,font = ("Helvetica",18,"bold"),validate="key", validatecommand=(validation, '%P'))
