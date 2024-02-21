@@ -7,10 +7,10 @@ A School Database made using SQLite and TKinter.
 ```python -m venv venv```
 3. Done!
 
-## Just Want to Play around with the software?
+## Just Want to Play around with the Software?
 Download databasepy.rar in the build folder, extract it and launch databasepy.exe!
 
-## Some Screenshots of the game:-
+## Some Screenshots of the Software:-
 ![Main Menu](images/1.png)
 ![Database Showcase](images/2.png)
 ![Edit Window](images/3.png)
